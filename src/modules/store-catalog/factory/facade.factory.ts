@@ -12,10 +12,9 @@ export default class StoreCatalogFacadeFactory {
         const findUseCase = new FindProductUseCase(productRepository);
         const findAllUseCase = new FindAllProductsUsecase(productRepository);
 
-        const facade = new StoreCatalogFacade({
+        return new StoreCatalogFacade({
             findUseCase: findUseCase,
             findAllUseCase: findAllUseCase
-        });
-        return facade;
+        });;
     }
 }
