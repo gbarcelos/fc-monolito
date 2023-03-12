@@ -48,22 +48,22 @@ describe("InvoiceFacade test", () => {
             ]
         };
 
-        const facade = InvoiceFacadeFactory.create();
+        const invoiceFacade = InvoiceFacadeFactory.create();
 
-        const output = await facade.create(input);
+        const invoideCreated = await invoiceFacade.createInvoice(input);
 
-        expect(output).toBeDefined();
-        expect(output.id).toBeDefined();
-        expect(output.name).toBe(input.name);
-        expect(output.document).toBe(input.document);
-        expect(output.street).toBe(input.street);
-        expect(output.number).toBe(input.number);
-        expect(output.complement).toBe(input.complement);
-        expect(output.city).toBe(input.city);
-        expect(output.state).toBe(input.state);
-        expect(output.zipCode).toBe(input.zipCode);
-        expect(output.items.length).toBe(input.items.length);
-        expect(output.total).toBe(
+        expect(invoideCreated).toBeDefined();
+        expect(invoideCreated.id).toBeDefined();
+        expect(invoideCreated.name).toBe(input.name);
+        expect(invoideCreated.document).toBe(input.document);
+        expect(invoideCreated.street).toBe(input.street);
+        expect(invoideCreated.number).toBe(input.number);
+        expect(invoideCreated.complement).toBe(input.complement);
+        expect(invoideCreated.city).toBe(input.city);
+        expect(invoideCreated.state).toBe(input.state);
+        expect(invoideCreated.zipCode).toBe(input.zipCode);
+        expect(invoideCreated.items.length).toBe(input.items.length);
+        expect(invoideCreated.total).toBe(
             input.items.reduce((acc, item) => acc + item.price, 0)
         );
     });
@@ -93,22 +93,23 @@ describe("InvoiceFacade test", () => {
             ]
         };
 
-        const facade = InvoiceFacadeFactory.create();
-        const output = await facade.create(input);
-        const found = await facade.find(output.id);
+        const invoiceFacade = InvoiceFacadeFactory.create();
 
-        expect(found).toBeDefined();
-        expect(found.id).toBeDefined();
-        expect(found.name).toBe(input.name);
-        expect(found.document).toBe(input.document);
-        expect(found.address.street).toBe(input.street);
-        expect(found.address.number).toBe(input.number);
-        expect(found.address.complement).toBe(input.complement);
-        expect(found.address.city).toBe(input.city);
-        expect(found.address.state).toBe(input.state);
-        expect(found.address.zipCode).toBe(input.zipCode);
-        expect(found.items.length).toBe(input.items.length);
-        expect(found.total).toBe(
+        const invoideCreated = await invoiceFacade.createInvoice(input);
+        const invoideFound = await invoiceFacade.findInvoice(invoideCreated.id);
+
+        expect(invoideFound).toBeDefined();
+        expect(invoideFound.id).toBeDefined();
+        expect(invoideFound.name).toBe(input.name);
+        expect(invoideFound.document).toBe(input.document);
+        expect(invoideFound.address.street).toBe(input.street);
+        expect(invoideFound.address.number).toBe(input.number);
+        expect(invoideFound.address.complement).toBe(input.complement);
+        expect(invoideFound.address.city).toBe(input.city);
+        expect(invoideFound.address.state).toBe(input.state);
+        expect(invoideFound.address.zipCode).toBe(input.zipCode);
+        expect(invoideFound.items.length).toBe(input.items.length);
+        expect(invoideFound.total).toBe(
             input.items.reduce((acc, item) => acc + item.price, 0)
         );
     });
