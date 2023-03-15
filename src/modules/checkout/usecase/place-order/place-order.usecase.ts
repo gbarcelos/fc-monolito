@@ -8,6 +8,8 @@ import Id from "../../../@shared/domain/value-object/id.value-object";
 import Order from "../../domain/order.entity";
 import Product from "../../domain/product.entity";
 import { PlaceOrderInputDto, PlaceOrderOutputDto } from "./place-order.dto";
+import { InvoiceFacadeInterface } from "../../../invoice/facade/invoice.facade.interface";
+import PaymentFacadeInterface from "../../../payment/facade/facade.interface";
 
 export default class PlaceOrderUseCase implements UseCaseInterface {
 
@@ -15,31 +17,24 @@ export default class PlaceOrderUseCase implements UseCaseInterface {
     private _productFacade: ProductAdmFacadeInterface;
     private _catalogFacade: StoreCatalogFacade;
     private _repository: CheckoutGateway;
-    private _invoceFacade: Invoice
+    private _invoiceFacade: InvoiceFacadeInterface;
+    private _paymentFacade: PaymentFacadeInterface;
 
     constructor(
         clientFacade: ClientAdmFacadeInterface,
         productFacade: ProductAdmFacadeInterface,
-        catalogFacade: StoreCatalogFacade
+        catalogFacade: StoreCatalogFacade,
+        repository: CheckoutGateway,
+        invoiceFacade: InvoiceFacadeInterface,
+        paymentFacade: PaymentFacadeInterface
     ) {
         this._clientFacade = clientFacade;
         this._productFacade = productFacade;
         this._catalogFacade = catalogFacade;
+        this._repository = repository;
+        this._invoiceFacade = invoiceFacade;
+        this._paymentFacade = paymentFacade;
     }
-
-    /*
-        constructor(
-            clientFacade: ClientAdmFacadeInterface,
-            productFacade: ProductAdmFacadeInterface,
-            catalogFacade: StoreCatalogFacade,
-            repository: CheckoutGateway
-        ) {
-            this._clientFacade = clientFacade;
-            this._productFacade = productFacade;
-            this._catalogFacade = catalogFacade;
-            this._repository = repository;
-        }
-    */
 
     async execute(input: PlaceOrderInputDto): Promise<PlaceOrderOutputDto> {
 
@@ -61,42 +56,53 @@ export default class PlaceOrderUseCase implements UseCaseInterface {
             id: new Id(client.id),
             name: client.name,
             email: client.email,
-            address: client.address
+            address: client.street
         });
 
         const order = new Order({
             client: myClient,
             products: products
         });
-        this._repository.addOrder(order);
 
-        /*
-                
-        
-        
-        
+        const payment = await this._paymentFacade.process({
+            orderId: order.id.id,
+            amount: order.total
+        });
 
-        
-
-        
-                return {
-                    id: order.id.id,
-                    invoiceId: "",
-                    status: "",
-                    total: order.total,
-                    products: order.products.map((p) => {
+        const invoice =
+            payment.status === "approved"
+                ? await this._invoiceFacade.createInvoice({
+                    name: client.name,
+                    document: client.document,
+                    street: client.street,
+                    complement: client.complement,
+                    number: client.number,
+                    city: client.city,
+                    state: client.state,
+                    zipCode: client.zipCode,
+                    items: products.map((p) => {
                         return {
-                            productId: p.id.id
+                            id: p.id.id,
+                            name: p.name,
+                            price: p.salesPrice
                         };
                     })
-                };
-                */
+                })
+                : null;
+
+        payment.status === "approved" && order.approved();
+        this._repository.addOrder(order);
+
         return {
-            id: "",
-            invoiceId: "",
-            status: "",
-            total: 0,
-            products: []
+            id: order.id.id,
+            invoiceId: payment.status === "approved" ? invoice.id : null,
+            status: order.status,
+            total: order.total,
+            products: order.products.map((p) => {
+                return {
+                    productId: p.id.id
+                };
+            })
         };
     }
 

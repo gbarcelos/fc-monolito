@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize-typescript";
 import Id from "../../@shared/domain/value-object/id.value-object";
+import { Address } from "../../invoice/domain/address.value-object";
 import Client from "../domain/client.entity";
 import { ClientModel } from "./client.model";
 import ClientRepository from "./client.repository";
@@ -28,7 +29,15 @@ describe("ClientRepository test", () => {
             id: new Id("1"),
             name: "Client 1",
             email: "x@x.com",
-            address: "Address 1"
+            document: "123456789",
+            address: new Address({
+                street: "Address 1",
+                number: "1",
+                complement: "Complement 1",
+                city: "City 1",
+                state: "State 1",
+                zipCode: "ZipCode 1"
+            })
         });
 
         const repository = new ClientRepository();
@@ -44,30 +53,46 @@ describe("ClientRepository test", () => {
         expect(clientDb.id).toBe(client.id.id);
         expect(clientDb.name).toBe(client.name);
         expect(clientDb.email).toBe(client.email);
-        expect(clientDb.address).toBe(client.address);
-        expect(clientDb.createdAt).toBeDefined();
-        expect(clientDb.updatedAt).toBeDefined();
+        expect(clientDb.document).toBe(client.document);
+        expect(clientDb.street).toBe(client.address.street);
+        expect(clientDb.number).toBe(client.address.number);
+        expect(clientDb.complement).toBe(client.address.complement);
+        expect(clientDb.city).toBe(client.address.city);
+        expect(clientDb.state).toBe(client.address.state);
+        expect(clientDb.zipCode).toBe(client.address.zipCode);
     });
 
     it("should find a client", async () => {
 
-        const client = await ClientModel.create({
-            id: "1",
+        const client = new Client({
+            id: new Id("1"),
             name: "Client 1",
             email: "x@x.com",
-            address: "Address 1",
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
+            document: "123456789",
+            address: new Address({
+              street: "Address 1",
+              number: "1",
+              complement: "Complement 1",
+              city: "City 1",
+              state: "State 1",
+              zipCode: "ZipCode 1",
+            }),
+          });
 
         const repository = new ClientRepository();
+        await repository.add(client);
         const result = await repository.find("1");
 
-        expect(result.id.id).toEqual("1");
-        expect(result.name).toEqual("Client 1");
-        expect(result.email).toEqual("x@x.com");
-        expect(result.address).toEqual("Address 1");
-        expect(result.createdAt).toBeDefined();
-        expect(result.updatedAt).toBeDefined();
+        expect(result).toBeDefined();
+        expect(result.id.id).toBe(client.id.id);
+        expect(result.name).toBe(client.name);
+        expect(result.email).toBe(client.email);
+        expect(result.document).toBe(client.document);
+        expect(result.address.street).toBe(client.address.street);
+        expect(result.address.number).toBe(client.address.number);
+        expect(result.address.complement).toBe(client.address.complement);
+        expect(result.address.city).toBe(client.address.city);
+        expect(result.address.state).toBe(client.address.state);
+        expect(result.address.zipCode).toBe(client.address.zipCode);
     });
 });
